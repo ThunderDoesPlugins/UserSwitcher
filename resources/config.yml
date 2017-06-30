@@ -1,0 +1,16 @@
+---
+# Config
+
+# Always switch username
+# DO NOT use this plugin to block names
+# from what : to what
+# Both are case sensitive
+# Please note that this does not protect against infinite redirect loops (maybe added in future)
+# Please note that using this will result in longer join time
+always-switch:
+ "x" : "y"
+
+# Use custom transfer instate of $player->transfer
+# Enable by your own risk, only use if there's a plugin that mess with transfer event
+use-custom-transfer: false
+...

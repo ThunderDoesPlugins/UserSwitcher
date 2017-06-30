@@ -1,0 +1,18 @@
+name: UserSwitcher
+version: 1.0.0
+api: [3.0.0-ALPHA5]
+author: Thunder33345
+description: "Allows user to switch username in game"
+website: "https://github.com/ThunderDoesPlugins/UserSwitcher"
+main: Thunder33345\UserSwitcher\UserSwitcher
+
+commands:
+  switchuser:
+    aliases: ['su']
+
+permissions:
+  userswitcher:
+    default: false
+    children:
+      userswitcher.use:
+        default: true
