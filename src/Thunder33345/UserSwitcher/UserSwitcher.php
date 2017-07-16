@@ -46,12 +46,16 @@ class UserSwitcher extends PluginBase implements Listener
 
   public function onCommand(CommandSender $sender,Command $command,$label,array $args)
   {
-    if(!$sender instanceof Player OR !isset($args[0])) {
+    if(!$sender instanceof Player) {
       $sender->sendMessage('Only Player Can Switch User');
       return;
     }
     if(!$sender->hasPermission('userswitcher.use')) {
       $sender->sendMessage('Insufficient Permission');
+      return;
+    }
+    if(!isset($args[0])){
+      $sender->sendMessage('Please provide a player name to switch to');
       return;
     }
     $name = $sender->getName();
