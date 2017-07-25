@@ -6,8 +6,8 @@ namespace Thunder33345\UserSwitcher;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\event\Listener;
+use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
-use pocketmine\event\player\PlayerRespawnEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\network\mcpe\protocol\LoginPacket;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
@@ -20,7 +20,6 @@ class UserSwitcher extends PluginBase implements Listener
   private $pending = [];
   private $alias = [];
   private $ip = [];
-  private $firstSpawn = [];
 
   private $customTransfer = false;
   private $alwaysSwitch = [];
@@ -54,14 +53,8 @@ class UserSwitcher extends PluginBase implements Listener
       $sender->sendMessage('Insufficient Permission');
       return;
     }
-    $name = $sender->getName();
-    if(isset($this->alias[$name])) $name = $this->alias[$name];
-
-    $this->pending[$name] = $args[0];
     $sender->sendMessage("Switching user...");
-
-    $ip = $this->ip[$sender->getAddress()];
-    $this->transfer($sender,$ip[0],$ip[1]);
+    $this->switchUser($sender,$args[0]);
   }
 
   public function onReceivePacket(DataPacketReceiveEvent $event)
@@ -74,8 +67,8 @@ class UserSwitcher extends PluginBase implements Listener
     $this->ip[$ip] = $connectIp;
 
     $name = $pk->username;
-    if(isset($this->pending[$name])) {
-      $nameTo = $this->pending[$name];
+    if($this->getPending($name) !==false) {
+      $nameTo = $this->getPending($name);
       unset($this->pending[$name]);
 
       $pk->username = $nameTo;
@@ -83,19 +76,30 @@ class UserSwitcher extends PluginBase implements Listener
     }
   }
 
-  public function firstSpawnEvent(PlayerRespawnEvent $event)
+  public function preLogin(PlayerPreLoginEvent $event)
   {
     $player = $event->getPlayer();
     $name = $player->getName();
-
-    if(isset($this->firstSpawn[$name])) return;
-
-    $this->firstSpawn[$name] = true;
     if(isset($this->alwaysSwitch[$name])) {//because i cant use this in packets receive nor onjoin
       $to = $this->alwaysSwitch[$name];
-      $this->delayedSwitchUser($player,$to,5);
+      $this->switchUser($player,$to);
+      $event->setCancelled(true);
     }
   }
+
+  /*  public function firstSpawnEvent(PlayerRespawnEvent $event)
+    {
+      $player = $event->getPlayer();
+      $name = $player->getName();
+
+      if(isset($this->firstSpawn[$name])) return;
+
+      $this->firstSpawn[$name] = true;
+      if(isset($this->alwaysSwitch[$name])) {//because i cant use this in packets receive nor onjoin
+        $to = $this->alwaysSwitch[$name];
+        $this->delayedSwitchUser($player,$to,5);
+      }
+    }*/
 
   public function onLeft(PlayerQuitEvent $event)
   {
@@ -115,7 +119,7 @@ class UserSwitcher extends PluginBase implements Listener
 
     if(isset($this->alias[$name])) $name = $this->alias[$name];
 
-    $this->pending[$name] = $to;
+    $this->setPending($name,$to);
 
     $ip = $this->ip[$player->getAddress()];
     $this->transfer($player,$ip[0],$ip[1]);
@@ -144,4 +148,8 @@ class UserSwitcher extends PluginBase implements Listener
       $player->close("","transfer",false);
     } else $player->transfer($ip,$port);
   }
+
+  private function setPending($from,$to) {$this->pending[$from] = $to;}
+
+  public function getPending($of) {if(isset($this->pending[$of])) return $this->pending[$of]; else return false;  }
 }
