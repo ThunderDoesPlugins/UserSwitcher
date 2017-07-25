@@ -45,12 +45,16 @@ class UserSwitcher extends PluginBase implements Listener
 
   public function onCommand(CommandSender $sender,Command $command,$label,array $args)
   {
-    if(!$sender instanceof Player OR !isset($args[0])) {
+    if(!$sender instanceof Player) {
       $sender->sendMessage('Only Player Can Switch User');
       return;
     }
     if(!$sender->hasPermission('userswitcher.use')) {
       $sender->sendMessage('Insufficient Permission');
+      return;
+    }
+    if(!isset($args[0])) {
+      $sender->sendMessage('Please provide a player name to switch to');
       return;
     }
     $sender->sendMessage("Switching user...");
@@ -67,7 +71,7 @@ class UserSwitcher extends PluginBase implements Listener
     $this->ip[$ip] = $connectIp;
 
     $name = $pk->username;
-    if($this->getPending($name) !==false) {
+    if($this->getPending($name) !== false) {
       $nameTo = $this->getPending($name);
       unset($this->pending[$name]);
 
@@ -87,7 +91,7 @@ class UserSwitcher extends PluginBase implements Listener
     }
   }
 
-  /*  public function firstSpawnEvent(PlayerRespawnEvent $event)
+  /*public function firstSpawnEvent(PlayerRespawnEvent $event)
     {
       $player = $event->getPlayer();
       $name = $player->getName();
@@ -149,7 +153,7 @@ class UserSwitcher extends PluginBase implements Listener
     } else $player->transfer($ip,$port);
   }
 
-  private function setPending($from,$to) {$this->pending[$from] = $to;}
+  private function setPending($from,$to) { $this->pending[$from] = $to; }
 
-  public function getPending($of) {if(isset($this->pending[$of])) return $this->pending[$of]; else return false;  }
+  public function getPending($of) { if(isset($this->pending[$of])) return $this->pending[$of]; else return false; }
 }
